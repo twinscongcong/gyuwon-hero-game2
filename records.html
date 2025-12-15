@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>규원 히어로 최고기록</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<style>
+body {
+  margin:0;
+  background:#eef;
+  font-family:Arial;
+  text-align:center;
+}
+h2 { margin-top:20px; }
+.card {
+  background:#fff;
+  margin:12px;
+  padding:14px;
+  border-radius:14px;
+  font-size:20px;
+  box-shadow:0 2px 6px rgba(0,0,0,0.15);
+}
+.hero { font-weight:bold; }
+.score { font-size:28px; color:#ff5722; }
+button {
+  margin:20px;
+  padding:12px 20px;
+  font-size:18px;
+  border-radius:14px;
+  border:none;
+  background:#ffd966;
+}
+</style>
+</head>
+<body>
+
+<h2>🏆 규원 히어로 최고기록</h2>
+
+<div class="card">
+  🕷 <span class="hero">스파이더규원</span><br>
+  <span class="score" id="spider">0</span> 점
+</div>
+
+<div class="card">
+  💚 <span class="hero">헐크규원</span><br>
+  <span class="score" id="hulk">0</span> 점
+</div>
+
+<div class="card">
+  🤖 <span class="hero">아이언규원</span><br>
+  <span class="score" id="iron">0</span> 점
+</div>
+
+<div class="card">
+  🐈 ⬛ <span class="hero">블랙규원</span><br>
+  <span class="score" id="black">0</span> 점
+</div>
+
+<div class="card">
+  🛡 <span class="hero">캡틴규원</span><br>
+  <span class="score" id="captain">0</span> 점
+</div>
+
+<button onclick="location.href='gyuwon_hero_final.html'">
+  🎮 게임으로 돌아가기
+</button>
+
+<script>
+const heroes = ["spider","hulk","iron","black","captain"];
+heroes.forEach(h => {
+  document.getElementById(h).innerText =
+    localStorage.getItem("best_" + h) || 0;
+});
+</script>
+
+</body>
+</html>

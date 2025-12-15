@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>규원 히어로 폭탄 피하기</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<style>
+body { margin:0; background:#eef; text-align:center; font-family:Arial; }
+canvas { background:#fff; display:block; margin:auto; border:3px solid #333; }
+button {
+  margin:5px; padding:8px 12px; font-size:14px;
+  border-radius:10px; border:none; background:#ffd966;
+}
+</style>
+</head>
+<body>
+
+<h2 id="title">🦸 규원 히어로를 골라요</h2>
+<div id="menu">
+  <button onclick="startGame('spider')">🕷 스파이더규원</button>
+  <button onclick="startGame('hulk')">💚 헐크규원</button>
+  <button onclick="startGame('iron')">🤖 아이언규원</button>
+  <button onclick="startGame('black')">🐈 ⬛ 블랙규원</button>
+  <button onclick="startGame('captain')">🛡 캡틴규원</button>
+</div>
+
+<canvas id="game" width="360" height="500" style="display:none;"></canvas>
+
+<script>
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+
+let heroImg = new Image();
+let heroName = "";
+let hero = { x:140, y:360, w:80, h:80, vy:0 };
+
+let bomb = { x:360, y:450, r:16 };
+let block = null;
+
+let gravity = 0.75;
+let jumping = false;
+let speed = 4;
+let score = 0;
+let gameOver = false;
+let webActive = false;
+
+// 🔊 간단 효과음
+const beep = (freq, dur=0.08) => {
+  const a = new AudioContext();
+  const o = a.createOscillator();
+  o.connect(a.destination);
+  o.frequency.value = freq;
+  o.start();
+  o.stop(a.currentTime + dur);
+};
+
+function startGame(name) {
+  heroName = name;
+  heroImg.src = name + ".png";
+  document.getElementById("menu").style.display = "none";
+  document.getElementById("title").innerText = "터치해서 점프!";
+  canvas.style.display = "block";
+  reset();
+}
+
+canvas.addEventListener("touchstart", jump);
+canvas.addEventListener("mousedown", jump);
+
+function jump() {
+  if (!jumping && !gameOver) {
+    hero.vy = -20;
+    jumping = true;
+    webActive = true;
+    block = { x: hero.x - 10, y: hero.y + 90, w: 100, h: 15 };
+    beep(700);
+  }
+  if (gameOver) reset();
+}
+
+function reset() {
+  hero.y = 360;
+  hero.vy = 0;
+  bomb.x = 360;
+  speed = 4;
+  score = 0;
+  gameOver = false;
+  block = null;
+}
+
+function update() {
+  if (gameOver) return;
+
+  hero.y += hero.vy;
+  hero.vy += gravity;
+
+  // 블록 착지
+  if (block &&
+      hero.y + hero.h >= block.y &&
+      hero.y + hero.h <= block.y + 10 &&
+      hero.vy >= 0) {
+    hero.y = block.y - hero.h;
+    hero.vy = 0;
+    jumping = false;
+    webActive = false;
+    beep(400);
+  }
+
+  if (hero.y >= 360) {
+    hero.y = 360;
+    hero.vy = 0;
+    jumping = false;
+    block = null;
+  }
+
+  bomb.x -= speed;
+  if (bomb.x < -20) {
+    bomb.x = 360;
+    score++;
+    speed += 0.3;
+    beep(900);
+  }
+
+  if (
+    hero.x < bomb.x + bomb.r &&
+    hero.x + hero.w > bomb.x - bomb.r &&
+    hero.y + hero.h > bomb.y - bomb.r
+  ) {
+    gameOver = true;
+    saveScore();
+  }
+}
+
+function saveScore() {
+  const key = "best_" + heroName;
+  const best = localStorage.getItem(key) || 0;
+  if (score > best) localStorage.setItem(key, score);
+}
+
+function draw() {
+  ctx.clearRect(0,0,360,500);
+
+  // 바닥
+  ctx.fillStyle="#aaa";
+  ctx.fillRect(0,460,360,40);
+
+  // 거미줄
+  if (webActive) {
+    ctx.strokeStyle="#fff";
+    ctx.lineWidth=3;
+    ctx.beginPath();
+    ctx.moveTo(hero.x + hero.w/2, hero.y + hero.h);
+    ctx.lineTo(hero.x + hero.w/2, 460);
+    ctx.stroke();
+  }
+
+  // 블록
+  if (block) {
+    ctx.fillStyle="#666";
+    ctx.fillRect(block.x, block.y, block.w, block.h);
+  }
+
+  // 캐릭터
+  ctx.drawImage(heroImg, hero.x, hero.y, hero.w, hero.h);
+
+  // 폭탄
+  ctx.beginPath();
+  ctx.arc(bomb.x, bomb.y, bomb.r, 0, Math.PI*2);
+  ctx.fillStyle="black";
+  ctx.fill();
+
+  // 점수
+  ctx.fillStyle="#000";
+  ctx.font="16px Arial";
+  ctx.fillText("점수: " + score, 10, 20);
+
+  if (gameOver) {
+    const best = localStorage.getItem("best_" + heroName) || 0;
+    ctx.font="22px Arial";
+    ctx.fillStyle="red";
+    ctx.fillText("다시 도전!", 110, 230);
+    ctx.font="16px Arial";
+    ctx.fillText("최고 점수: " + best, 120, 260);
+  }
+}
+
+function loop() {
+  update();
+  draw();
+  requestAnimationFrame(loop);
+}
+loop();
+</script>
+</body>
+</html>
